@@ -1,0 +1,10 @@
+const matrix = [
+  [1, 2, 3, 4, 54, 34],
+  [4, 5, 6, 4, 54, 34],
+]
+
+for (let i = 0; i < matrix.length; i++) {
+  for (let j = 0; j < matrix[i].length; j++) {
+    console.log(matrix[i][j])
+  }
+}
