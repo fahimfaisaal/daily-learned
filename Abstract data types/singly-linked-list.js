@@ -12,6 +12,8 @@ class SinglyLinkedList {
     this.#length = 0
     this.head = null
     this.tail = null
+
+    return Object.seal(this)
   }
 
   get size() {
@@ -44,6 +46,9 @@ class SinglyLinkedList {
       const value = this.head.value
       this.head = this.head.next
 
+      if (!this.head) {
+        this.tail = null
+      }
       return value
     }
 
@@ -75,6 +80,7 @@ class SinglyLinkedList {
   pop() {
     if (this.tail) {
       this.#length--
+
       if (this.head === this.tail) {
         const value = this.head.value
 
@@ -83,7 +89,7 @@ class SinglyLinkedList {
       }
 
       let t1 = this.head
-      let t2 = this.head.next
+      let t2 = this.head?.next
 
       while (t2 = t2.next) {
         t1 = t1.next
@@ -100,7 +106,7 @@ class SinglyLinkedList {
   }
 
   addAt(index, value) {
-    if (index > this.#length) {
+    if (index < 0 || index > this.#length) {
       throw new Error(`Illegal index ${index}`)
     }
 
@@ -125,6 +131,36 @@ class SinglyLinkedList {
     const node = new Node(value)
     t1.next = node
     node.next = t2
+
+    return this
+  }
+
+  removeAt(index) {
+    if (index < 0 || index >= this.#length) {
+      throw new Error(`Illegal index ${index}`)
+    }
+
+    this.#length--
+
+    if (index === 0) {
+      return this.shift()
+    }
+
+    if (index === this.#length) {
+      return this.pop()
+    }
+
+    let t1 = this.head
+    let t2 = this.head.next
+
+    for (let i = 1; i < index; i++) {
+      t1 = t1.next
+      t2 = t2.next
+    }
+
+    t1.next = t2.next
+
+    return t2.value
   }
 
  /**
@@ -133,6 +169,22 @@ class SinglyLinkedList {
   clear() {
     this.head = this.tail = null
     this.#length = 0
+
+    return this
+  }
+
+  reverse() {
+    const reverseLL = new SinglyLinkedList()
+
+    while (this.head) {
+      reverseLL.unshift(this.shift())
+    }
+
+    while (reverseLL.head) {
+      this.push(reverseLL.shift())
+    }
+
+    return this
   }
 
   toString() {
@@ -143,9 +195,10 @@ class SinglyLinkedList {
 const ll = new SinglyLinkedList()
 
 ll.push(1).push(3).push(4).unshift(0)
+console.log(ll.addAt(2, 2).removeAt(2))
 console.log(ll.size)
-ll.addAt(2, 2)
 console.log(ll.toString())
+console.log(ll.reverse().toString())
 console.log(ll.shift())
 console.log(ll.pop())
 console.log(ll.pop())
