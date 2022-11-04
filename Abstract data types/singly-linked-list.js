@@ -5,13 +5,14 @@ class Node {
   }
 }
 
-
 class SinglyLinkedList {
   #length
-  constructor() {
+  constructor(initValues) {
     this.#length = 0
     this.head = null
     this.tail = null
+
+    initValues.forEach(value => this.addLast(value))
 
     return Object.seal(this)
   }
@@ -20,27 +21,31 @@ class SinglyLinkedList {
     return this.#length
   }
 
+  isEmpty() {
+    return this.#length === 0
+  }
+
  /**
   * @complexity O(1)
  */
-  push(value) {
+  addLast(value) {
     const node = new Node(value)
     this.#length++
 
     if (this.tail === null) {
       this.head = this.tail = node
-      return this
+    } else {
+      this.tail.next = node
+      this.tail = node
     }
 
-    this.tail.next = node
-    this.tail = node
     return this
   }
 
   /**
   * @complexity O(1)
   */
-  shift() {
+  removeFirst() {
     if (this.head) {
       this.#length--
       const value = this.head.value
@@ -49,6 +54,7 @@ class SinglyLinkedList {
       if (!this.head) {
         this.tail = null
       }
+
       return value
     }
 
@@ -58,26 +64,24 @@ class SinglyLinkedList {
   /**
   * @complexity O(1)
   */
-  unshift(value) {
+  addFirst(value) {
     const node = new Node(value)
     this.#length++
 
-    if (this.head === null) {
+    if (this.isEmpty()) {
       this.head = this.tail = node
+    } else {
+      node.next = this.head
 
-      return this
+      this.head = node
     }
-
-    node.next = this.head
-
-    this.head = node
     return this
   }
 
   /**
    * @complexity O(n)
    */
-  pop() {
+  removeLast() {
     if (this.tail) {
       this.#length--
 
@@ -105,15 +109,54 @@ class SinglyLinkedList {
     return null
   }
 
+  /**
+* @complexity O(n)
+*/
+  includes(value) {
+    let node = this.head
+
+    while (node) {
+      if (node.value === value) {
+        return true
+      }
+      
+      node = node.next
+    }
+
+    return false
+  }
+
+  /**
+* @complexity O(n)
+*/
+  indexOf(value) {
+    let i = 0
+    let node = this.head
+
+    while (node) {
+      if (node.value === value) {
+        return i
+      }
+
+      i++
+      node = node.next
+    }
+
+    return -1
+  }
+
+  /**
+* @complexity O(n)
+*/
   addAt(index, value) {
     if (index < 0 || index > this.#length) {
-      throw new Error(`Illegal index ${index}`)
+      throw new RangeError(`Out of Range index ${index}`)
     }
 
     this.#length++
 
     if (index === this.#length - 1) {
-      return this.push(value)
+      return this.addLast(value)
     }
 
     if (index === 0) {
@@ -135,9 +178,12 @@ class SinglyLinkedList {
     return this
   }
 
+  /**
+* @complexity O(n)
+*/
   removeAt(index) {
     if (index < 0 || index >= this.#length) {
-      throw new Error(`Illegal index ${index}`)
+      throw new RangeError(`Out of Range index ${index}`)
     }
 
     this.#length--
@@ -163,6 +209,129 @@ class SinglyLinkedList {
     return t2.value
   }
 
+  at(index) {
+    if (index < 0 || index >= this.#length) {
+      throw new RangeError(`Out of Range index ${index}`)
+    }
+
+    let i = 0;
+    let node = this.head
+
+    while (node) {
+      if (index === i++) {
+        break
+      }
+
+      node = node.next
+    }
+
+    return {
+      node,
+      value: node.value
+    }
+  }
+
+  /**
+* @complexity O(n)
+*/
+  reverse() {
+    const reverseLL = new SinglyLinkedList()
+
+    while (this.head) {
+      reverseLL.addFirst(this.removeFirst())
+    }
+
+    while (reverseLL.head) {
+      this.addLast(reverseLL.removeFirst())
+    }
+
+    return this
+  }
+
+  /**
+* @complexity O(n)
+*/
+  forEach(cb) {
+    let i = 0;
+    let head = this.head
+
+    while (head) {
+      cb(head.value, i++, this)
+      head = head.next
+    }
+  }
+
+  /**
+  * @complexity O(n)
+  */
+  map(cb) {
+    const mapLinkedList = new SinglyLinkedList()
+
+    this.forEach((value, index) => {
+      mapLinkedList.addLast(cb(value, index, this))
+    })
+
+    return mapLinkedList
+  }
+
+  /**
+* @complexity O(n)
+*/
+  filter(cb) {
+    const filteredList = new SinglyLinkedList()
+
+    this.forEach((value, index) => {
+      if (cb(value, index, this)) {
+        filteredList.addLast(value)
+      }
+    })
+
+    return filteredList
+  }
+
+  /**
+* @complexity O(n)
+*/
+  reduce(reducer, initialAcc) {
+    let node = this.head
+    let index = 0
+
+    if ([undefined, null, NaN].includes(initialAcc)) {
+      index = 1
+      initialAcc = node?.value
+      node = node?.next
+    }
+
+    while (node) {
+      initialAcc = reducer(initialAcc, node.value, index, this)
+      node = node.next
+    }
+
+    return initialAcc
+  }
+
+  mid() {
+    const mid = this.#length >> 1
+    return this.at(mid)
+  }
+
+  /**
+* @complexity O(n)
+*/
+  values() {
+    let node = this.head
+
+    const generator = function* () {
+      while (node) {
+        yield node.value
+
+        node = node.next
+      }
+    }
+
+    return generator()
+  }
+
  /**
  * @complexity O(1)
  */
@@ -173,34 +342,15 @@ class SinglyLinkedList {
     return this
   }
 
-  reverse() {
-    const reverseLL = new SinglyLinkedList()
-
-    while (this.head) {
-      reverseLL.unshift(this.shift())
-    }
-
-    while (reverseLL.head) {
-      this.push(reverseLL.shift())
-    }
-
-    return this
+  toString(indent = 2) {
+    return JSON.stringify(this, null, indent)
   }
 
-  toString() {
-    return JSON.stringify(this, null, 2)
+  log() {
+    console.log(this.toString())
   }
 }
 
-const ll = new SinglyLinkedList()
+const ll = new SinglyLinkedList(new Set([1, 2, 3, 4]))
 
-ll.push(1).push(3).push(4).unshift(0)
-console.log(ll.addAt(2, 2).removeAt(2))
-console.log(ll.size)
-console.log(ll.toString())
-console.log(ll.reverse().toString())
-console.log(ll.shift())
-console.log(ll.pop())
-console.log(ll.pop())
-
-console.log(ll, ll.size)
+console.log(ll)
