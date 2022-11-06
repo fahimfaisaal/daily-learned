@@ -354,3 +354,6 @@ class SinglyLinkedList {
 const ll = new SinglyLinkedList(new Set([1, 2, 3, 4]))
 
 console.log(ll)
+
+
+modules.exports = SinglyLinkedList
