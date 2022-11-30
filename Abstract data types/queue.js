@@ -56,13 +56,4 @@ class Queue {
   }
 }
 
-const queue = new Queue([1, 2, 3, 4]);
-console.log("dequeue", queue.dequeue());
-console.log("dequeue", queue.dequeue());
-console.log("dequeue", queue.dequeue());
-console.log("dequeue", queue.dequeue());
-console.log("dequeue", queue.dequeue());
-
-console.log(queue);
-
 module.exports = Queue;
