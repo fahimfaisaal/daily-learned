@@ -1,18 +1,17 @@
-class Heap {
-  #heap
+class Heap extends Array {
   #map
+  #length
 
   constructor(initialValues = []) {
-    this.#heap = []
+    super()
     this.#map = new Map()
+    this.#length = 0
 
-    for (const value of initialValues) {
-      this.insert(value)
-    }
+    this.push(...initialValues)
   }
 
   get length() {
-    return this.#heap.length
+    return this.#length
   }
 
   parent(childIndex) {
@@ -28,10 +27,10 @@ class Heap {
   }
 
   #swap(firstIndex, secondIndex) {
-    [this.#heap[firstIndex], this.#heap[secondIndex]] = [this.#heap[secondIndex], this.#heap[firstIndex]]
+    [this[firstIndex], this[secondIndex]] = [this[secondIndex], this[firstIndex]]
   }
 
-  #insertMap(key, value) {
+  #memoInsert(key, value) {
     if (this.#map.has(key)) {
       return this.#map.get(key).add(value)
     } 
@@ -39,46 +38,104 @@ class Heap {
     return this.#map.set(key, new Set([value]))
   }
 
-  #updateMap(parent, child) {
-    const parentValue = this.#heap.at(parent)
-    const childValue = this.#heap.at(child)
+  #memoUpdate(parent, child) {
+    const parentValue = this[parent]
+    const childValue = this[child]
 
     this.#map.get(parentValue).delete(parent)
-    this.#insertMap(parentValue, child)
+    this.#memoInsert(parentValue, child)
 
     this.#map.get(childValue).delete(child)
-    this.#insertMap(childValue, parent)
+    this.#memoInsert(childValue, parent)
+  }
+
+  #memoRemove(index) {
+    const value = this[index];
+    this.#map.get(value).delete(index)
+
+    this.#map.get(value).size === 0 && this.#map.delete(value)
   }
 
   #bubbleUp(index) {
     const parent = this.parent(index)
-    const parentValue = this.#heap[parent]
-    const value = this.#heap[index]
+    const parentValue = this[parent]
+    const value = this[index]
 
     if (parentValue > value) {
-      this.#updateMap(parent, index) 
+      this.#memoUpdate(parent, index) 
       this.#swap(parent, index)
 
       return this.#bubbleUp(parent)
     }
   }
 
+  #sinkDown(index) {
+    const right = this.right(index)
+    const left = this.left(index)
+
+    const childMap = {
+      [this[right] ?? '']: right,
+      [this[left] ?? '']: left
+    }
+    const child = Object.keys(childMap).filter(Boolean)
+    
+    if (child.some((value) => value < this[index])) {
+      const minIndex = childMap[Math.min(...child)]
+
+      this.#memoUpdate(index, minIndex)
+      this.#swap(index, minIndex)
+      this.#sinkDown(minIndex)
+    }
+  }
+
+  peek() {
+    return this[0]
+  }
+
+  push(...elements) {
+    for (const value of elements) {
+      this.insert(value)
+    }
+
+    return this.length
+  }
+
   insert(data) {
-    this.#heap.push(data)
-    this.#insertMap(data, this.length - 1)
+    super.push(data)
+    this.#memoInsert(data, this.length - 1)
     this.#bubbleUp(this.length - 1)
+    this.#length++
 
     return this
   }
 
-  toArray() {
-    return structuredClone(this.#heap)
+  remove(data) {
+    const index = this.#map.get(data)?.values().next().value
+
+    ~index && this.removeAt(index)
+  }
+
+  removeAt(index = 0) {
+    this.#memoRemove(index)
+    this.#length--
+
+    this.#map.get(this[this.length - 1]).delete(this.length - 1)
+    this.#map.get(this[this.length - 1]).add(index)
+
+    this.#swap(index, this.length - 1)
+    super.pop()
+
+    this.#sinkDown(index)
+
+    return this
   }
 }
 
 const heap = new Heap([10, 20, 4])
 
 heap.insert(10).insert(5).insert(3).insert(29).insert(1).insert(0)
+heap.remove(10)
 
-console.log(heap.toArray())
+console.log(heap)
+
 module.exports = Heap
