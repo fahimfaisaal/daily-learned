@@ -10,6 +10,7 @@ class Queue {
   constructor(initialValues = []) {
     this.#length = 0;
     this.head = null;
+    this.tail = null
 
     for (const value of initialValues) {
       this.enqueue(value);

@@ -8,9 +8,9 @@ class Heap extends Array {
     this.#length = 0
 
     this.push(...initialValues)
-  }
+  } 
 
-  get length() {
+  get size() {
     return this.#length
   }
 
@@ -133,8 +133,13 @@ class Heap extends Array {
 
 const heap = new Heap([10, 20, 4])
 
-heap.insert(10).insert(5).insert(3).insert(29).insert(1).insert(0)
-heap.remove(10)
+heap.push(10, 5, 3, 29, 1, 0)
+
+heap.removeAt()
+heap.removeAt()
+heap.removeAt()
+heap.removeAt()
+heap.insert(1)
 
 console.log(heap)
 
